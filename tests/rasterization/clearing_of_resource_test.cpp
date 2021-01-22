@@ -63,6 +63,7 @@ SCENARIO("Rasterizer can clear render target", "[rasterizer]")
 {
 	GIVEN("Dummy rasterizer with unsigned char render target")
 	{
+        // Create a black-and-white render target with FullHD resolution.
 		cg::renderer::rasterizer<float, unsigned char> rasterizer;
 		auto render_target = std::make_shared<cg::resource<unsigned char>>(1920, 1080);
 		rasterizer.set_render_target(render_target);
@@ -84,6 +85,8 @@ SCENARIO("Rasterizer can clear render target", "[rasterizer]")
 }
 
 /*
+ * Uncomment this and the line in the beginning of a file if you want to benchmark.
+ *
 TEST_CASE("FullHD clear benchmark", "[benchmark]")
 {
 	cg::renderer::rasterizer<float, unsigned char> rasterizer;
