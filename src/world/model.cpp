@@ -17,8 +17,6 @@ cg::world::model::~model() {}
 
 void cg::world::model::load_obj(const std::filesystem::path& model_path)
 {
-    printf("Loading file %s\n", model_path.string().c_str());
-
 	tinyobj::ObjReaderConfig reader_config;
 	reader_config.mtl_search_path =
 		model_path.parent_path().string(); // Path to material files
@@ -39,7 +37,6 @@ void cg::world::model::load_obj(const std::filesystem::path& model_path)
     size_t per_shape_id = 0;
 
     // The final data structures for our loaded model
-    printf("Vertices: %d\n", attrib.vertices.size());
     vertex_buffer = std::make_shared<cg::resource<cg::vertex>>(attrib.vertices.size());
 //vertex_buffer = std::make_shared<cg::resource<cg::vertex>>(1000);
     per_shape_buffer.resize(shapes.size());
@@ -50,7 +47,6 @@ void cg::world::model::load_obj(const std::filesystem::path& model_path)
     }
 
 	// Loop over shapes
-    printf("Shapes: %d\n", shapes.size());
 	for (size_t s = 0; s < shapes.size(); s++)
 	{
         // Reset per-shape ID
@@ -58,7 +54,6 @@ void cg::world::model::load_obj(const std::filesystem::path& model_path)
 		// Loop over faces in a shape
 		size_t index_offset = 0;
 
-        printf("Feces: %d\n", shapes[s].mesh.num_face_vertices.size());
 		for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
 		{
 			int fv = shapes[s].mesh.num_face_vertices[f];
@@ -92,7 +87,6 @@ void cg::world::model::load_obj(const std::filesystem::path& model_path)
             }
 
 			// Loop over vertices in the face.
-            printf("Vertices: %d\n", fv);
 			for (size_t v = 0; v < fv; v++)
 			{
 				// access to vertex
@@ -148,12 +142,8 @@ void cg::world::model::load_obj(const std::filesystem::path& model_path)
                     // Do nothing
                 }
 
-                printf("Adding vertex %f %f %f\n", vertex.x, vertex.y, vertex.z);
-                printf("VBI: %d\n", vertex_buffer_id);
                 vertex_buffer->item(vertex_buffer_id++) = vertex;
-                printf("Added 1\n");
                 per_shape_buffer[s]->item(per_shape_id++) = vertex;
-                printf("Added 2\n");
 
 				// Optional: vertex colors
 				// tinyobj::real_t red = attrib.colors[3*idx.vertex_index+0];
