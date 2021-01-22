@@ -12,8 +12,7 @@ void cg::renderer::rasterization_renderer::init()
             settings->height
     );
     rasterizer->set_render_target(render_target);
-
-
+//rasterizer->set_vertex_buffer(
 }
 
 void cg::renderer::rasterization_renderer::destroy() {

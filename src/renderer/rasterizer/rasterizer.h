@@ -13,7 +13,7 @@ using namespace linalg::aliases;
 namespace cg::renderer
 {
 
-// VB - ???
+// VB - Vertex Buffer type.
 // RT - Render Target value type (the one of which is render target).
 //     Worst naming ever.
 template<typename VB, typename RT>
@@ -70,7 +70,7 @@ inline void rasterizer<VB, RT>::clear_render_target(const RT& in_clear_value, co
 template<typename VB, typename RT>
 inline void rasterizer<VB, RT>::set_vertex_buffer(std::shared_ptr<resource<VB>> in_vertex_buffer)
 {
-    THROW_ERROR("Not implemented yet");
+    vertex_buffer = in_vertex_buffer;
 }
 
 template<typename VB, typename RT>
