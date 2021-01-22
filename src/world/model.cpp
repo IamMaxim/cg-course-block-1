@@ -16,23 +16,23 @@ cg::world::model::~model() {}
 
 void cg::world::model::load_obj(const std::filesystem::path& model_path)
 {
-	THROW_ERROR("Not implemented yet");
+    THROW_ERROR("Not implemented yet");
 }
 
 std::shared_ptr<cg::resource<cg::vertex>> cg::world::model::get_vertex_buffer() const
 {
-	return vertex_buffer;
+    return vertex_buffer;
 }
 
 std::vector<std::shared_ptr<cg::resource<cg::vertex>>>
-	cg::world::model::get_per_shape_buffer() const
+    cg::world::model::get_per_shape_buffer() const
 {
-	return per_shape_buffer;
+    return per_shape_buffer;
 }
 
 
 const float4x4 cg::world::model::get_world_matrix() const
 {
-	THROW_ERROR("Not implemented yet");
-	return float4x4();
+    THROW_ERROR("Not implemented yet");
+    return float4x4();
 }

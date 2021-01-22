@@ -5,7 +5,7 @@
 
 void cg::renderer::ray_tracing_renderer::init()
 {
-	THROW_ERROR("Not implemented yet");
+    THROW_ERROR("Not implemented yet");
 }
 
 void cg::renderer::ray_tracing_renderer::destroy() {}
@@ -14,5 +14,5 @@ void cg::renderer::ray_tracing_renderer::update() {}
 
 void cg::renderer::ray_tracing_renderer::render()
 {
-	THROW_ERROR("Not implemented yet");
+    THROW_ERROR("Not implemented yet");
 }

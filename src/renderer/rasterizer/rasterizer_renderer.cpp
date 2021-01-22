@@ -7,11 +7,11 @@ void cg::renderer::rasterization_renderer::init()
 {
     // Create a black-and-white render target with FullHD resolution.
     rasterizer = std::make_shared<cg::renderer::rasterizer<cg::vertex, cg::unsigned_color>>();
-	render_target = std::make_shared<cg::resource<cg::unsigned_color>>(
+    render_target = std::make_shared<cg::resource<cg::unsigned_color>>(
             settings->width,
             settings->height
     );
-	rasterizer->set_render_target(render_target);
+    rasterizer->set_render_target(render_target);
 
 
 }
