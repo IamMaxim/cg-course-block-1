@@ -1,0 +1,96 @@
+{
+  "FileVersion": 2,
+  "Id": "a3e4f3ab-0ffb-f141-5872-7d63c4c7c2c9",
+  "Items": [
+    {
+      "Id": "9095d557-e71b-4a06-a69e-b1f9f7184731",
+      "Command": "720p",
+      "Items": [
+        {
+          "Id": "b72b7e87-83fa-4552-9b10-7b6deaa49964",
+          "Command": "--height=720"
+        },
+        {
+          "Id": "9359dd2c-3bb6-4e31-b8ca-8d9ed4f96b39",
+          "Command": "--width=1280"
+        }
+      ]
+    },
+    {
+      "Id": "fb9ad967-f80f-459a-b939-80fb1d1c5b06",
+      "Command": "FullHD",
+      "Items": [
+        {
+          "Id": "3f2a34fd-4ded-4b75-9907-13d35461e265",
+          "Command": "--height=1080"
+        },
+        {
+          "Id": "2d99d750-5111-4321-8744-099ba1f18650",
+          "Command": "--width=1920"
+        }
+      ]
+    },
+    {
+      "Id": "b4fbffaa-9238-4740-be33-47c464f79c61",
+      "Command": "Triangles",
+      "Items": [
+        {
+          "Id": "e0eb420d-14d9-4428-87e5-9df2e62a9949",
+          "Command": "--model_path=models\\z_test.obj"
+        },
+        {
+          "Id": "dce29ec4-5bf9-4abe-9475-4984d1c73d80",
+          "Command": "--camera_position=0.0,0.0,2.0"
+        },
+        {
+          "Id": "223f7067-8cb1-4b50-9f1b-270549c72211",
+          "Command": "--result_path=rasterizer_triangles.png"
+        }
+      ]
+    },
+    {
+      "Id": "803f61d8-9cf0-4489-a91f-e7e28b8ffc8f",
+      "Command": "Cube",
+      "Items": [
+        {
+          "Id": "3b006ee4-fe08-491d-9720-973344196696",
+          "Command": "--model_path=models\\cube.obj"
+        },
+        {
+          "Id": "8a50af39-eb7c-4e60-906d-46af845ecabf",
+          "Command": "--camera_position=0.0,1.0,2.0"
+        },
+        {
+          "Id": "88d7c4f0-ade9-4a97-b7a0-43bdf94bbcee",
+          "Command": "--camera_phi=-25"
+        },
+        {
+          "Id": "05b865e0-49f7-4bad-825f-a0819b4cff74",
+          "Command": "--result_path=rasterizer_cube.png"
+        }
+      ]
+    },
+    {
+      "Id": "f3af8573-dae4-425d-abf9-1ed67a855779",
+      "Command": "CornellBox",
+      "Items": [
+        {
+          "Id": "5a96ccc8-5b29-4526-a565-6dac1cbd6b9c",
+          "Command": "--model_path=models\\CornellBox-Original.obj"
+        },
+        {
+          "Id": "d322538a-2f62-4c77-b343-125ebce63453",
+          "Command": "--camera_position=0.0,1.0,3.2"
+        },
+        {
+          "Id": "08f69e28-ec9a-4f15-b0e8-944040d52b65",
+          "Command": "--result_path=rasterizer_cornell_box.png"
+        }
+      ]
+    },
+    {
+      "Id": "7f5b5ee4-8252-4d4c-aff1-9c6c4c2d196a",
+      "Command": "--help"
+    }
+  ]
+}

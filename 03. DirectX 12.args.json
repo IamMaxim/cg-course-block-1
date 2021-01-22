@@ -1,0 +1,84 @@
+{
+  "FileVersion": 2,
+  "Id": "6c67e7cc-5835-dbd2-41c9-4bf92d36b737",
+  "Items": [
+    {
+      "Id": "bafb5833-9692-45bf-b179-9700b08d3e79",
+      "Command": "720p",
+      "Items": [
+        {
+          "Id": "041204bb-e88b-4178-8710-55867705699c",
+          "Command": "--height=720"
+        },
+        {
+          "Id": "e998aae8-affb-4952-84cd-4f7ee5d640b4",
+          "Command": "--width=1280"
+        }
+      ]
+    },
+    {
+      "Id": "90b84996-eda7-4f29-af54-a4a67d7cde1b",
+      "Command": "FullHD",
+      "Items": [
+        {
+          "Id": "fcc1b9c1-011b-4232-a188-8aa04d892e19",
+          "Command": "--height=1080"
+        },
+        {
+          "Id": "43d34ae1-472b-4c69-a8a7-ba270a99f85b",
+          "Command": "--width=1920"
+        }
+      ]
+    },
+    {
+      "Id": "d54d72ce-401d-4005-802d-6bf3526d8727",
+      "Command": "Triangles",
+      "Items": [
+        {
+          "Id": "b18b9317-cca3-4a2b-aa82-9609febabbc9",
+          "Command": "--model_path=models\\z_test.obj"
+        },
+        {
+          "Id": "b6bd27a6-0594-46eb-87fd-3d99a4fe6df7",
+          "Command": "--camera_position=0.0,0.0,2.0"
+        }
+      ]
+    },
+    {
+      "Id": "dfcdc8d2-118a-40a6-8971-a905f095012e",
+      "Command": "Cube",
+      "Items": [
+        {
+          "Id": "709b68a2-d980-45d3-9fd6-304ceb9e36a8",
+          "Command": "--model_path=models\\cube.obj"
+        },
+        {
+          "Id": "12710e33-9a13-453e-b6c0-341941e13d6c",
+          "Command": "--camera_position=0.0,1.0,2.0"
+        },
+        {
+          "Id": "43d19272-60c9-49dd-8c1a-54e351fea5ea",
+          "Command": "--camera_phi=-25"
+        }
+      ]
+    },
+    {
+      "Id": "f390b517-2972-4adf-b0c7-df09c42695f6",
+      "Command": "CornellBox",
+      "Items": [
+        {
+          "Id": "86d6a422-cb28-4fc3-95b2-de97d907afb4",
+          "Command": "--model_path=models\\CornellBox-Original.obj"
+        },
+        {
+          "Id": "fe64835c-e187-46a3-af7e-b326a0c5248c",
+          "Command": "--camera_position=0.0,1.0,3.0"
+        }
+      ]
+    },
+    {
+      "Id": "13a8a0c8-4fd7-423a-8a2a-0c87238a33da",
+      "Command": "--help"
+    }
+  ]
+}

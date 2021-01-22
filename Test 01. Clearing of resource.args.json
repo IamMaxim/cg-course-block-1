@@ -1,0 +1,10 @@
+{
+  "FileVersion": 2,
+  "Id": "76384306-e250-2a30-abfd-b9c917d5bec9",
+  "Items": [
+    {
+      "Id": "c387a8b3-3453-4cf2-8b9e-3f0847217ff4",
+      "Command": "--benchmark-samples=10"
+    }
+  ]
+}
