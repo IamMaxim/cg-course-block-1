@@ -38,7 +38,6 @@ void cg::world::model::load_obj(const std::filesystem::path& model_path)
 
     // The final data structures for our loaded model
     vertex_buffer = std::make_shared<cg::resource<cg::vertex>>(attrib.vertices.size());
-//vertex_buffer = std::make_shared<cg::resource<cg::vertex>>(1000);
     per_shape_buffer.resize(shapes.size());
 
     // Initialize per shape buffers
