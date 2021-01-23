@@ -36,8 +36,16 @@ void cg::world::model::load_obj(const std::filesystem::path& model_path)
 	size_t vertex_buffer_id = 0;
     size_t per_shape_id = 0;
 
+    size_t vert_count = 0;
+    for (size_t s = 0; s < shapes.size(); s++) {
+        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+            int fv = shapes[s].mesh.num_face_vertices[f];
+            vert_count += fv;
+        }
+    }
+
     // The final data structures for our loaded model
-    vertex_buffer = std::make_shared<cg::resource<cg::vertex>>(attrib.vertices.size());
+    vertex_buffer = std::make_shared<cg::resource<cg::vertex>>(vert_count);
     per_shape_buffer.resize(shapes.size());
 
     // Initialize per shape buffers
@@ -141,8 +149,11 @@ void cg::world::model::load_obj(const std::filesystem::path& model_path)
                     // Do nothing
                 }
 
+                // printf("adding 1\n");
                 vertex_buffer->item(vertex_buffer_id++) = vertex;
+                // printf("adding 2\n");
                 per_shape_buffer[s]->item(per_shape_id++) = vertex;
+                // printf("adding 3\n");
 
 				// Optional: vertex colors
 				// tinyobj::real_t red = attrib.colors[3*idx.vertex_index+0];
