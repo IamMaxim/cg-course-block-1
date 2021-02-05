@@ -24,13 +24,17 @@ void cg::renderer::rasterization_renderer::init()
     camera->set_z_near(settings->camera_z_near);
     camera->set_z_far(settings->camera_z_far);
 
-    // Create a rasterizer instance with a new render target
+    // Create a rasterizer instance with a new render target and depth buffer
     render_target = std::make_shared<cg::resource<cg::unsigned_color>>(
-            settings->width,
-            settings->height
+        settings->width,
+        settings->height
+    );
+    depth_buffer = std::make_shared<cg::resource<float>>(
+        settings->width,
+        settings->height
     );
     rasterizer = std::make_shared<cg::renderer::rasterizer<cg::vertex, cg::unsigned_color>>();
-    rasterizer->set_render_target(render_target);
+    rasterizer->set_render_target(render_target, depth_buffer);
     rasterizer->set_vertex_buffer(model->get_vertex_buffer());
     rasterizer->set_viewport(settings->width, settings->height);
 
@@ -63,7 +67,6 @@ void cg::renderer::rasterization_renderer::render()
             vertex_data.ambient_b
         };
     };
-
 
     rasterizer->draw(model->get_vertex_buffer()->get_number_of_elements(), 0);
 

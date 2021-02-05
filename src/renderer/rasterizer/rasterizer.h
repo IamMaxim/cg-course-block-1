@@ -57,14 +57,24 @@ inline void rasterizer<VB, RT>::set_render_target(
 {
     if (in_render_target)
         render_target = in_render_target;
+
+    if (in_depth_buffer)
+        depth_buffer = in_depth_buffer;
 }
 
+/* Clears the render target and depth buffer with provided values in_clear_value and in_depth. */
 template<typename VB, typename RT>
 inline void rasterizer<VB, RT>::clear_render_target(const RT& in_clear_value, const float in_depth)
 {
     if (render_target) {
         for (size_t i = 0; i < render_target->get_number_of_elements(); i++) {
             render_target->item(i) = in_clear_value;
+        }
+    }
+
+    if (depth_buffer) {
+        for (size_t i = 0; i < depth_buffer->get_number_of_elements(); i++) {
+            depth_buffer->item(i) = in_depth;
         }
     }
 }
@@ -97,7 +107,6 @@ inline void rasterizer<VB, RT>::draw(size_t num_vertices, size_t vertex_offset)
 
         for (auto& vertex : vertices) {
             float4 coords {vertex.x, vertex.y, vertex.z, 1.f};
-            // printf("Coords: %f %f %f\n", vertex.x, vertex.y, vertex.z);
 
             // Invoke a vertex shader
             auto processed_vertex = vertex_shader(coords, vertex);
@@ -121,18 +130,28 @@ inline void rasterizer<VB, RT>::draw(size_t num_vertices, size_t vertex_offset)
             std::clamp(std::max(std::max(vertices[0].y, vertices[1].y), vertices[2].y), 0.f, static_cast<float>(height) - 1.f),
         };
 
+        float edge = edge_function(
+            float2 {vertices[0].x, vertices[0].y},
+            float2 {vertices[1].x, vertices[1].y},
+            float2 {vertices[2].x, vertices[2].y}
+        );
+
+        // Check each pixel in the bounding box and invoke pixel shader if needed
         for (int x = static_cast<int>(bounding_box_begin.x); x <= static_cast<int>(bounding_box_end.x); x++)
         for (int y = static_cast<int>(bounding_box_begin.y); y <= static_cast<int>(bounding_box_end.y); y++) {
+            // bary-coordinate for vertices[2]
             float edge0 = edge_function(
                 float2 {vertices[0].x, vertices[0].y},
                 float2 {vertices[1].x, vertices[1].y},
                 float2 {static_cast<float>(x), static_cast<float>(y)}
             );
+            // bary-coordinate for vertices[0]
             float edge1 = edge_function(
                 float2 {vertices[1].x, vertices[1].y},
                 float2 {vertices[2].x, vertices[2].y},
                 float2 {static_cast<float>(x), static_cast<float>(y)}
             );
+            // bary-coordinate for vertices[1]
             float edge2 = edge_function(
                 float2 {vertices[2].x, vertices[2].y},
                 float2 {vertices[0].x, vertices[0].y},
@@ -142,10 +161,25 @@ inline void rasterizer<VB, RT>::draw(size_t num_vertices, size_t vertex_offset)
             if (edge0 >= 0.f && edge1 >= 0.f && edge2 >= 0.f) {
                 // We are processing the pixel of a triangle; invoke pixel shader
                 // and write the result to render target
+                float u = edge1 / edge;
+                float v = edge2 / edge;
+                float w = edge0 / edge;
+
+                float z = u * vertices[0].z +
+                          v * vertices[1].z +
+                          w * vertices[2].z;
+
+                // Skip processing pixel if depth test is not passed
+                if (!depth_test(z, x, y))
+                    continue;
+
                 // TODO: fix this
                 auto pixel_shader_result = pixel_shader(vertices[0], 0);
 
                 render_target->item(x, y) = RT::from_color(pixel_shader_result);
+
+                if (depth_buffer)
+                    depth_buffer->item(x, y) = z;
             }
         }
     }
@@ -160,7 +194,10 @@ inline float rasterizer<VB, RT>::edge_function(float2 a, float2 b, float2 c)
 template<typename VB, typename RT>
 inline bool rasterizer<VB, RT>::depth_test(float z, size_t x, size_t y)
 {
-    THROW_ERROR("Not implemented yet");
+    if (!depth_buffer)
+        return true;
+
+    return depth_buffer->item(x, y) > z;
 }
 
 } // namespace cg::renderer
