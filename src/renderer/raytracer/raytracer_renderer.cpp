@@ -12,6 +12,11 @@ void cg::renderer::ray_tracing_renderer::init()
 		settings->width, settings->height);
 
 
+	// Load the model supplied in the command-line argument
+	model = std::make_shared<cg::world::model>();
+	model->load_obj(settings->model_path);
+
+
 	// Setup camera with command line arguments
 	camera = std::make_shared<cg::world::camera>();
 	camera->set_width(static_cast<float>(settings->width));
@@ -30,6 +35,7 @@ void cg::renderer::ray_tracing_renderer::init()
 		std::make_shared<cg::renderer::raytracer<cg::vertex, cg::unsigned_color>>();
 	raytracer->set_render_target(render_target);
 	raytracer->set_viewport(settings->width, settings->height);
+	raytracer->set_per_shape_vertex_buffer(model->get_per_shape_buffer());
 }
 
 void cg::renderer::ray_tracing_renderer::destroy() {}
@@ -51,6 +57,16 @@ void cg::renderer::ray_tracing_renderer::render()
 		};
 		return payload;
 	};
+
+	raytracer->closest_hit_shader = [](const ray& ray, payload& payload,
+									   const triangle<cg::vertex>& triangle) {
+		payload.color = cg::color::from_float3(triangle.ambient);
+
+		return payload;
+	};
+
+	raytracer->build_acceleration_structure();
+
 	raytracer->ray_generation(
 		camera->get_position(), camera->get_direction(), camera->get_right(),
 		camera->get_up());
