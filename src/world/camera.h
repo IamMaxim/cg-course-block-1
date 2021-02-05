@@ -20,6 +20,9 @@ public:
     void set_theta(float in_theta);
     void set_phi(float in_phi);
 
+    float get_theta();
+    float get_phi();
+
     void set_angle_of_view(float in_aov);
     void set_height(float in_height);
     void set_width(float in_width);

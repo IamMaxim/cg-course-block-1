@@ -128,3 +128,11 @@ const float3 cg::world::camera::get_up() const
 {
     return cross(get_right(), get_direction());
 }
+
+float cg::world::camera::get_phi() {
+    return phi * 180.0f / static_cast<float>(M_PI);
+}
+
+float cg::world::camera::get_theta() {
+    return theta * 180.0f / static_cast<float>(M_PI);
+}
