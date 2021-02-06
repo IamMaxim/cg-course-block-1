@@ -6,6 +6,7 @@
 #include <memory>
 #include <omp.h>
 #include <random>
+#include <stdio.h>
 #include <time.h>
 
 using namespace linalg::aliases;
@@ -27,6 +28,7 @@ struct payload
 	float t;
 	float3 bary;
 	cg::color color;
+	size_t depth;
 };
 
 template<typename VB>
@@ -130,17 +132,21 @@ public:
 	std::function<payload(const ray& ray, payload& payload, const triangle<VB>& triangle)> any_hit_shader =
 		nullptr;
 
+	float get_random(const int thread_num, float range = 0.1f) const;
+
+	// You can alter this number to enable/disable super-sampling anti-aliasing.
+	// Value of 1 means SSAA is disabled.
+	int SSAA_factor = 16;
+
+	// Max amount of times the same ray may be re-casted.
+	int max_depth = 5;
 
 protected:
 	std::shared_ptr<cg::resource<RT>> render_target;
 	std::vector<std::shared_ptr<cg::resource<VB>>> per_shape_vertex_buffer;
 
-	float get_random(const int thread_num, float range = 0.1f) const;
-
 	size_t width = 1920;
 	size_t height = 1080;
-
-	int SSAA_factor = 8;
 };
 
 template<typename VB, typename RT>
@@ -198,6 +204,7 @@ inline void raytracer<VB, RT>::ray_generation(
 	float3 position, float3 direction, float3 right, float3 up)
 {
 	for (int x = 0; x < width; x++)
+	{
 #pragma omp parallel for
 		for (int y = 0; y < height; y++)
 		{
@@ -206,21 +213,42 @@ inline void raytracer<VB, RT>::ray_generation(
 			for (int px = 0; px < SSAA_factor; px++)
 				for (int py = 0; py < SSAA_factor; py++)
 				{
+					// float x_jitter = get_random(omp_get_thread_num() + clock());
+					// float y_jitter = get_random(omp_get_thread_num() + clock());
+
 					// Converting from [0; width - 1] to [-1, 1]:
 					//     [0; width - 1] -> [0; 1] -> [0; 2] -> [-1; 1]
-					float u = 2.f * (x + px / static_cast<float>(SSAA_factor)) / static_cast<float>(width - 1) - 1.f;
+					float u = 2.f * (x + px / static_cast<float>(SSAA_factor)) /
+								  static_cast<float>(width - 1) -
+							  1.f;
 					u *= static_cast<float>(width) / static_cast<float>(height);
-					float v = 2.f * (y + py / static_cast<float>(SSAA_factor)) / static_cast<float>(height - 1) - 1.f;
+					float v = 2.f * (y + py / static_cast<float>(SSAA_factor)) /
+								  static_cast<float>(height - 1) -
+							  1.f;
 
-					float3 ray_direction = direction + u * right - v * up;
+					float3 ray_direction = direction + (u)*right - (v)*up;
 					ray ray(position, ray_direction);
 
-					payload payload = trace_ray(ray, 1);
-					res_color += float3(payload.color.r, payload.color.g, payload.color.b);
+					payload payload = trace_ray(ray, max_depth);
+
+					res_color +=
+						float3(payload.color.r, payload.color.g, payload.color.b);
+
+					// cg::color accumed =
+					// cg::color::from_float3(render_target->item(x,
+					// y).to_float3()); cg::color result{ 	(accumed.r * 4.f +
+					// payload.color.r) / 5.f, 	(accumed.g * 4.f +
+					// payload.color.g) / 5.f, 	(accumed.b * 4.f +
+					// payload.color.b) / 5.f,
+					// };
 				}
 
-			render_target->item(x, y) = RT::from_color(cg::color::from_float3(res_color / static_cast<float>(SSAA_factor) / static_cast<float>(SSAA_factor)));
+			render_target->item(x, y) = RT::from_color(
+				cg::color::from_float3(res_color / SSAA_factor / SSAA_factor));
 		}
+
+		printf("\rProgress: %.2f%%", 100.f * x / width);
+	}
 }
 
 template<typename VB, typename RT>
@@ -251,7 +279,9 @@ inline payload
 				closest_triangle = &triangle;
 
 				if (any_hit_shader)
+				{
 					return any_hit_shader(ray, payload, triangle);
+				}
 			}
 		}
 	}
@@ -259,7 +289,10 @@ inline payload
 	if (closest_hit_payload.t < max_t)
 	{
 		if (closest_hit_shader)
+		{
+			closest_hit_payload.depth = depth;
 			return closest_hit_shader(ray, closest_hit_payload, *closest_triangle);
+		}
 	}
 
 	return miss_shader(ray);

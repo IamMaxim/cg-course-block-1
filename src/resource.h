@@ -117,8 +117,7 @@ struct unsigned_color
 	};
 	float3 to_float3()
 	{
-		THROW_ERROR("Not implemented yet");
-		return float3();
+		return float3(r, g, b) / 255.f;
 	};
 	unsigned char r;
 	unsigned char g;

@@ -39,8 +39,19 @@ void cg::renderer::ray_tracing_renderer::init()
 
 	shadow_raytracer =
 		std::make_shared<cg::renderer::raytracer<cg::vertex, cg::unsigned_color>>();
+	shadow_raytracer->SSAA_factor = 1;
+	shadow_raytracer->max_depth = 1;
 
-	lights.push_back({ float3{ 0, 1.58f, -0.03f }, float3{ 0.78f, 0.78f, 0.78f } });
+	// lights.push_back({ float3{ 0, 1.58f, -0.03f }, float3{ 0.78f, 0.78f,
+	// 0.78f } }); lights.push_back({ float3{ 0, 1.58f, -0.03f },
+	//    float3{ 121.f / 255.f, 58.f / 255.f, 122.f / 255.f } });
+
+	for (int x = -1; x <= 1; x++)
+		for (int y = -1; y <= 1; y++)
+		{
+			lights.push_back({ float3{ 0 + x * 0.05f, 1.58f, -0.03f + y * 0.05f },
+							   float3{ 121.f, 58.f, 122.f } / 255.f / 9.f });
+		}
 }
 
 void cg::renderer::ray_tracing_renderer::destroy() {}
@@ -51,38 +62,25 @@ void cg::renderer::ray_tracing_renderer::render()
 {
 	// camera->set_phi(-40);
 
-	// while (true)
+	raytracer->clear_render_target({ 0, 0, 0 });
+
+	// for (int i = 0; i < 100; i++)
 	// {
 	// camera->set_theta(camera->get_theta() + 20);
-
-	raytracer->clear_render_target({ 255, 0, 0 });
 
 	raytracer->miss_shader = [](const ray& ray) {
 		payload payload = {};
 
-		// My beautiful gradient
-		// payload.color = {0.4f, 0.1f, (ray.direction.y + ray.direction.x * 2.f
-		// + 2.5f) * 0.5f};
-
-		// Something that utilizes direction to entirely define a color
-		// payload.color = {
-		// 	(ray.direction.x + 1.f) * 0.5f,
-		// 	(ray.direction.y + 1.f) * 0.5f,
-		// 	(ray.direction.z + 1.f) * 0.5f,
-		// };
-
 		// Simulation of the sky
-		payload.color = { 151.f / 255.f * (0.8f - ray.direction.y * 0.8f),
-						  216.f / 255.f * (0.8f - ray.direction.y * 0.8f),
-						  255.f / 255.f };
+		payload.color = { 10.f / 255.f * (0.8f - ray.direction.y * 0.8f),
+						  12.f / 255.f * (0.8f - ray.direction.y * 0.8f),
+						  23.f / 255.f };
 
 		return payload;
 	};
 
 	raytracer->closest_hit_shader = [&](const ray& ray, payload& payload,
 										const triangle<cg::vertex>& triangle) {
-		// payload.color = cg::color::from_float3(triangle.ambient);
-
 		float3 result_color = triangle.emissive;
 		float3 position = ray.position + ray.direction * payload.t;
 		float3 normal = payload.bary.x * triangle.na +
@@ -94,11 +92,32 @@ void cg::renderer::ray_tracing_renderer::render()
 
 			auto shadow_payload =
 				shadow_raytracer->trace_ray(to_light, 1, length(light.position - position));
+
+			float shadow_factor = 0.4f;
 			if (shadow_payload.t == -1.f)
-			{
-				result_color += triangle.diffuse * light.color *
-								std::max(0.f, dot(normal, to_light.direction));
-			}
+				shadow_factor = 1.f;
+
+			result_color += triangle.diffuse * light.color *
+							std::max(0.f, dot(normal, to_light.direction)) *
+							shadow_factor;
+		}
+
+		if (payload.depth > 0)
+		{
+			float3 ref_dir = ray.direction - 2 * dot(ray.direction, normal) * normal;
+
+			float3 ref_jitter = float3(
+				raytracer->get_random(omp_get_thread_num() + clock()),
+				raytracer->get_random(omp_get_thread_num() + clock()),
+				raytracer->get_random(omp_get_thread_num() + clock())) / 3.f;
+
+			ref_dir = normalize(ref_dir + ref_jitter);
+
+			cg::renderer::ray ref_ray(position, ref_dir);
+			auto ref_result = raytracer->trace_ray(ref_ray, payload.depth - 1);
+			result_color +=
+				0.3f *
+				float3(ref_result.color.r, ref_result.color.g, ref_result.color.b);
 		}
 
 		payload.color = cg::color::from_float3(result_color);
@@ -124,6 +143,5 @@ void cg::renderer::ray_tracing_renderer::render()
 		camera->get_up());
 
 	cg::utils::save_resource(*render_target, settings->result_path);
-
 	// }
 }
