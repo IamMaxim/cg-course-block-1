@@ -116,8 +116,8 @@ public:
 	void set_per_shape_vertex_buffer(
 		std::vector<std::shared_ptr<cg::resource<VB>>> in_per_shape_vertex_buffer);
 	void build_acceleration_structure();
-	// std::vector<aabb<VB>> acceleration_structures;
-	std::vector<triangle<VB>> acceleration_structures;
+	std::vector<aabb<VB>> acceleration_structures;
+	// std::vector<triangle<VB>> acceleration_structures;
 
 	void ray_generation(float3 position, float3 direction, float3 right, float3 up);
 
@@ -169,14 +169,18 @@ inline void raytracer<VB, RT>::build_acceleration_structure()
 	for (auto& vertex_buffer : per_shape_vertex_buffer)
 	{
 		size_t vertex_id = 0;
+		aabb<VB> aabb;
+
 		while (vertex_id < vertex_buffer->get_number_of_elements())
 		{
 			triangle<VB> triangle(
 				vertex_buffer->item(vertex_id++), vertex_buffer->item(vertex_id++),
 				vertex_buffer->item(vertex_id++));
 
-			acceleration_structures.push_back(triangle);
+			aabb.add_triangle(triangle);
 		}
+
+		acceleration_structures.push_back(aabb);
 	}
 }
 
@@ -223,17 +227,23 @@ inline payload
 	closest_hit_payload.t = max_t;
 	const triangle<VB>* closest_triangle = nullptr;
 
-	for (auto& triangle : acceleration_structures)
+	for (auto& aabb : acceleration_structures)
 	{
-		payload payload = intersection_shader(triangle, ray);
+		if (!aabb.aabb_test(ray))
+			continue;
 
-		if (payload.t > min_t && payload.t < closest_hit_payload.t)
+		for (auto& triangle : aabb.get_traingles())
 		{
-			closest_hit_payload = payload;
-			closest_triangle = &triangle;
+			payload payload = intersection_shader(triangle, ray);
 
-			if (any_hit_shader)
-				return any_hit_shader(ray, payload, triangle);
+			if (payload.t > min_t && payload.t < closest_hit_payload.t)
+			{
+				closest_hit_payload = payload;
+				closest_triangle = &triangle;
+
+				if (any_hit_shader)
+					return any_hit_shader(ray, payload, triangle);
+			}
 		}
 	}
 
@@ -290,7 +300,18 @@ inline float raytracer<VB, RT>::get_random(const int thread_num, const float ran
 template<typename VB>
 inline void aabb<VB>::add_triangle(const triangle<VB> triangle)
 {
-	THROW_ERROR("Not implemented yet");
+	if (triangles.empty())
+		aabb_max = aabb_min = triangle.a;
+
+	triangles.push_back(triangle);
+
+	aabb_max = max(triangle.a, aabb_max);
+	aabb_max = max(triangle.b, aabb_max);
+	aabb_max = max(triangle.c, aabb_max);
+
+	aabb_min = min(triangle.a, aabb_min);
+	aabb_min = min(triangle.b, aabb_min);
+	aabb_min = min(triangle.c, aabb_min);
 }
 
 template<typename VB>
@@ -302,8 +323,12 @@ inline const std::vector<triangle<VB>>& aabb<VB>::get_traingles() const
 template<typename VB>
 inline bool aabb<VB>::aabb_test(const ray& ray) const
 {
-	THROW_ERROR("Not implemented yet");
-	return false;
+	float3 inv_ray_direction = float3(1.f) / ray.direction;
+	float3 t0 = (aabb_max - ray.position) * inv_ray_direction;
+	float3 t1 = (aabb_min - ray.position) * inv_ray_direction;
+	float3 tmin = min(t0, t1);
+	float3 tmax = max(t0, t1);
+	return maxelem(tmin) <= minelem(tmax);
 }
 
 } // namespace cg::renderer
