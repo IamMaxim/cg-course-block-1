@@ -139,6 +139,8 @@ protected:
 
 	size_t width = 1920;
 	size_t height = 1080;
+
+	int SSAA_factor = 8;
 };
 
 template<typename VB, typename RT>
@@ -199,18 +201,25 @@ inline void raytracer<VB, RT>::ray_generation(
 #pragma omp parallel for
 		for (int y = 0; y < height; y++)
 		{
-			// Converting from [0; width - 1] to [-1, 1]:
-			//     [0; width - 1] -> [0; 1] -> [0; 2] -> [-1; 1]
-			float u = 2.f * x / static_cast<float>(width - 1) - 1.f;
-			u *= static_cast<float>(width) / static_cast<float>(height);
-			float v = 2.f * y / static_cast<float>(height - 1) - 1.f;
+			float3 res_color(0.f);
 
-			float3 ray_direction = direction + u * right - v * up;
-			ray ray(position, ray_direction);
+			for (int px = 0; px < SSAA_factor; px++)
+				for (int py = 0; py < SSAA_factor; py++)
+				{
+					// Converting from [0; width - 1] to [-1, 1]:
+					//     [0; width - 1] -> [0; 1] -> [0; 2] -> [-1; 1]
+					float u = 2.f * (x + px / static_cast<float>(SSAA_factor)) / static_cast<float>(width - 1) - 1.f;
+					u *= static_cast<float>(width) / static_cast<float>(height);
+					float v = 2.f * (y + py / static_cast<float>(SSAA_factor)) / static_cast<float>(height - 1) - 1.f;
 
-			payload payload = trace_ray(ray, 1);
+					float3 ray_direction = direction + u * right - v * up;
+					ray ray(position, ray_direction);
 
-			render_target->item(x, y) = RT::from_color(payload.color);
+					payload payload = trace_ray(ray, 1);
+					res_color += float3(payload.color.r, payload.color.g, payload.color.b);
+				}
+
+			render_target->item(x, y) = RT::from_color(cg::color::from_float3(res_color / static_cast<float>(SSAA_factor) / static_cast<float>(SSAA_factor)));
 		}
 }
 
