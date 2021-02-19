@@ -56,12 +56,10 @@ void cg::renderer::dx12_renderer::destroy()
 
 void cg::renderer::dx12_renderer::update()
 {
-	THROW_ERROR("Not implemented yet")
 }
 
 void cg::renderer::dx12_renderer::render()
 {
-	THROW_ERROR("Not implemented yet")
 }
 
 void cg::renderer::dx12_renderer::load_pipeline()
@@ -125,12 +123,169 @@ void cg::renderer::dx12_renderer::load_pipeline()
 	frame_index = swap_chain->GetCurrentBackBufferIndex();
 
 
+	// Create render target view descriptor heap
+	D3D12_DESCRIPTOR_HEAP_DESC rtv_heap_desc = {};
+	rtv_heap_desc.NumDescriptors = frame_number;
+	rtv_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtv_heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
+	THROW_IF_FAILED(
+		device->CreateDescriptorHeap(&rtv_heap_desc, IID_PPV_ARGS(&rtv_heap)));
+
+	rtv_descriptor_size =
+		device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+	// Create render target view for RTs
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtv_handle(
+		rtv_heap->GetCPUDescriptorHandleForHeapStart());
+
+	for (UINT i = 0; i < frame_number; i++)
+	{
+		THROW_IF_FAILED(swap_chain->GetBuffer(i, IID_PPV_ARGS(&render_targets[i])));
+		device->CreateRenderTargetView(render_targets[i].Get(), nullptr, rtv_handle);
+
+		rtv_handle.Offset(1, rtv_descriptor_size);
+
+		// TODO: add name here
+	}
+
+	D3D12_DESCRIPTOR_HEAP_DESC cbv_heap_desc = {};
+	cbv_heap_desc.NumDescriptors = 1;
+	cbv_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	cbv_heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	THROW_IF_FAILED(
+		device->CreateDescriptorHeap(&cbv_heap_desc, IID_PPV_ARGS(&cbv_heap)));
 }
 
 void cg::renderer::dx12_renderer::load_assets()
 {
-	THROW_ERROR("Not implemented yet")
+	// Create root signature
+	D3D12_FEATURE_DATA_ROOT_SIGNATURE rs_feature_data = {};
+	rs_feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+
+	if (FAILED(device->CheckFeatureSupport(
+			D3D12_FEATURE_ROOT_SIGNATURE, &rs_feature_data, sizeof(rs_feature_data))))
+	{
+		rs_feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+	}
+
+	// Create descriptor tables
+	CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
+	CD3DX12_ROOT_PARAMETER1 root_parameters[1];
+	ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+	root_parameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_VERTEX);
+
+	D3D12_ROOT_SIGNATURE_FLAGS rs_flags =
+		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+
+	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rs_descriptor;
+	rs_descriptor.Init_1_1(_countof(root_parameters), root_parameters, 0, nullptr, rs_flags);
+
+	ComPtr<ID3DBlob> signature;
+	ComPtr<ID3DBlob> error;
+
+	auto result = D3DX12SerializeVersionedRootSignature(
+		&rs_descriptor, rs_feature_data.HighestVersion, &signature, &error);
+
+	if (FAILED(result))
+	{
+		OutputDebugStringA(static_cast<char*>(error->GetBufferPointer()));
+		THROW_IF_FAILED(result);
+	}
+
+	// Compile shaders
+	WCHAR buffer[MAX_PATH];
+	GetModuleFileName(NULL, buffer, MAX_PATH);
+	auto shader_path =
+		std::filesystem::path(buffer).parent_path() / "shaders.hlsl";
+
+	ComPtr<ID3DBlob> vertex_shader;
+	ComPtr<ID3DBlob> pixel_shader;
+
+	UINT compile_flags = 0;
+#ifdef _DEBUG
+	compile_flags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+
+	// Load vertex shader
+	result = D3DCompileFromFile(
+		shader_path.wstring().c_str(), nullptr, nullptr, "VSMain", "vs_5_0",
+		compile_flags, 0, &vertex_shader, &error);
+
+	if (FAILED(result))
+	{
+		OutputDebugStringA(static_cast<char*>(error->GetBufferPointer()));
+		THROW_IF_FAILED(result);
+	}
+
+	// Load pixel shader
+	result = D3DCompileFromFile(
+		shader_path.wstring().c_str(), nullptr, nullptr, "PSMain", "ps_5_0",
+		compile_flags, 0, &pixel_shader, &error);
+
+	if (FAILED(result))
+	{
+		OutputDebugStringA(static_cast<char*>(error->GetBufferPointer()));
+		THROW_IF_FAILED(result);
+	}
+
+
+	// *** Create and upload vertex buffer *** //
+	auto vertex_buffer_data = model->get_vertex_buffer();
+	const UINT vertex_buffer_size =
+		static_cast<UINT>(vertex_buffer_data->get_size_in_bytes());
+
+	THROW_IF_FAILED(device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(vertex_buffer_size),
+		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertex_buffer)));
+
+	vertex_buffer->SetName(L"Vertex buffer");
+
+	UINT8* vertex_data_begin;
+	CD3DX12_RANGE read_range(0, 0);
+	// Map VRAM to RAM to copy data
+	THROW_IF_FAILED(
+		vertex_buffer->Map(0, &read_range, reinterpret_cast<void**>(&vertex_data_begin)));
+	memcpy(vertex_data_begin, vertex_buffer_data->get_data(), vertex_buffer_size);
+	// Unmap VRAM from RAM, since we won't update data anymore
+	vertex_buffer->Unmap(0, nullptr);
+
+
+	// Create vertex buffer descriptor
+	vertex_buffer_view.BufferLocation = vertex_buffer->GetGPUVirtualAddress();
+	vertex_buffer_view.SizeInBytes = vertex_buffer_size;
+	vertex_buffer_view.StrideInBytes = sizeof(cg::vertex);
+
+	
+	
+	// *** Create and upload constant buffer *** ///
+	THROW_IF_FAILED(device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(64 * 1024), // 64KB
+		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&constant_buffer)));
+
+	constant_buffer->SetName(L"Constant buffer");
+
+	// Map VRAM to RAM to copy data
+	THROW_IF_FAILED(constant_buffer->Map(
+		0, &read_range, reinterpret_cast<void**>(&constant_buffer_data_begin)));
+	memcpy(constant_buffer_data_begin, &world_view_projection, sizeof(world_view_projection));
+	// Don't unmap VRAM from RAM, since we will update it each frame
+
+
+	// Create CBV descriptor
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_descriptor = {};
+	cbv_descriptor.BufferLocation = constant_buffer->GetGPUVirtualAddress();
+	cbv_descriptor.SizeInBytes = (sizeof(world_view_projection) + 255) & ~255;
+
+	device->CreateConstantBufferView(
+		&cbv_descriptor, cbv_heap->GetCPUDescriptorHandleForHeapStart());
 }
 
 void cg::renderer::dx12_renderer::populate_command_list()
