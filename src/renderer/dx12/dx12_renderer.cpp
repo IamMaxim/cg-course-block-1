@@ -373,7 +373,7 @@ void cg::renderer::dx12_renderer::populate_command_list()
         1, &CD3DX12_RESOURCE_BARRIER::Transition(
                render_targets[frame_index].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 
-	THROW_IF_FAILED(command_list->Close());
+    THROW_IF_FAILED(command_list->Close());
 }
 
 
@@ -387,9 +387,8 @@ void cg::renderer::dx12_renderer::move_to_next_frame()
     if (fence->GetCompletedValue() < fence_values[frame_index])
     {
         THROW_IF_FAILED(fence->SetEventOnCompletion(fence_values[frame_index], fence_event))
+        WaitForSingleObjectEx(fence_event, INFINITE, FALSE);
     }
-
-    WaitForSingleObjectEx(fence_event, INFINITE, FALSE);
 
     fence_values[frame_index] = current_fence_value + 1;
 }
