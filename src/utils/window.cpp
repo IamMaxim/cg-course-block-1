@@ -1,5 +1,7 @@
 #include "window.h"
 
+#include <settings.h>
+#include <sstream>
 #include <windowsx.h>
 
 using namespace cg::utils;
@@ -92,11 +94,47 @@ LRESULT cg::utils::window::window_proc(HWND hwnd, UINT message, WPARAM wparam, L
     case WM_MOUSEMOVE: {
         if (renderer)
         {
+            // // Center the cursor back
+            // RECT rect;
+            // if (GetWindowRect(hwnd, &rect))
+            // {
+            //     const int width = rect.right - rect.left;
+            //     const int height = rect.bottom - rect.top;
+                
+            //     POINT point;
+            //     point.x = width / 2 + rect.left;
+            //     point.y = height / 2 + rect.top;
+
+            //     // short x_pos = GET_X_LPARAM(lparam);
+            //     // short y_pos = GET_Y_LPARAM(lparam);
+
+            //     POINT cursor_pos;
+            //     GetCursorPos(&cursor_pos);
+
+
+            //     const int delta_x = (cursor_pos.x - rect.left) - width / 2;
+            //     const int delta_y = (cursor_pos.y - rect.top) - height / 2;
+
+
+            //     std::stringstream ss;
+            //     ss << delta_x << " " << delta_y << std::endl;
+            //     OutputDebugStringA(ss.str().c_str());
+
+            //     // printf("%i %i\n", x_pos - width / 2, y_pos - height / 2);
+
+            //     renderer->move_yaw((2.f * static_cast<float>(delta_x) / renderer->get_width() - 1.f) * 30.f);
+            //     renderer->move_pitch((-2.f * static_cast<float>(delta_y) / renderer->get_height() + 1.f) * 30.f);
+
+            //     // ClientToScreen(hwnd, &point);
+            //     SetCursorPos(point.x, point.y);
+            // }
+
+
             short x_pos = GET_X_LPARAM(lparam);
             short y_pos = GET_Y_LPARAM(lparam);
 
-            renderer->move_yaw((2.f*static_cast<float>(x_pos) / renderer->get_width()-1.f)*30.f);
-            renderer->move_pitch((-2.f*static_cast<float>(y_pos) / renderer->get_height()+1.f)*30.f);
+            renderer->move_yaw((2.f * static_cast<float>(x_pos) / renderer->get_width() - 1.f) * 30.f);
+            renderer->move_pitch((-2.f * static_cast<float>(y_pos) / renderer->get_height() + 1.f) * 30.f);
         }
     }
         return 0;

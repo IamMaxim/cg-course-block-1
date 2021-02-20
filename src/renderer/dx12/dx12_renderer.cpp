@@ -145,6 +145,7 @@ void cg::renderer::dx12_renderer::load_pipeline()
     {
         THROW_IF_FAILED(swap_chain->GetBuffer(i, IID_PPV_ARGS(&render_targets[i])));
         device->CreateRenderTargetView(render_targets[i].Get(), nullptr, rtv_handle);
+        render_targets[i]->SetName(L"Render target");
 
         rtv_handle.Offset(1, rtv_descriptor_size);
 
@@ -278,6 +279,7 @@ void cg::renderer::dx12_renderer::load_assets()
     // Create command list
     THROW_IF_FAILED(device->CreateCommandList(
         0, D3D12_COMMAND_LIST_TYPE_DIRECT, command_allocators[0].Get(), pipeline_state.Get(), IID_PPV_ARGS(&command_list)));
+    command_list->SetName(L"Command List");
     THROW_IF_FAILED(command_list->Close());
 
 
@@ -345,6 +347,7 @@ void cg::renderer::dx12_renderer::populate_command_list()
     // our synchronization code
     THROW_IF_FAILED(command_allocators[frame_index]->Reset());
     THROW_IF_FAILED(command_list->Reset(command_allocators[frame_index].Get(), pipeline_state.Get()));
+	command_list->SetName(L"New Command List");
 
     // Initial state
     command_list->SetGraphicsRootSignature(root_signature.Get());

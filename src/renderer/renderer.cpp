@@ -76,12 +76,12 @@ void cg::renderer::renderer::move_right(float delta)
 
 void cg::renderer::renderer::move_yaw(float delta)
 {
-    // TODO: append delta instead
+    // camera->set_theta(camera->get_theta() + delta);
     camera->set_theta(delta);
 }
 
 void cg::renderer::renderer::move_pitch(float delta)
 {
-    // TODO: append delta instead
+    // camera->set_phi(camera->get_phi() + delta);
     camera->set_phi(delta);
 }
