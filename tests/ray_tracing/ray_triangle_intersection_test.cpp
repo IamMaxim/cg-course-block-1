@@ -42,8 +42,7 @@ SCENARIO("Raytracer has correct ray-triangle test")
                 return payload;
             };
 
-            raytracer.closest_hit_shader = [](const cg::renderer::ray& ray,
-                                              cg::renderer::payload& payload,
+            raytracer.closest_hit_shader = [](const cg::renderer::ray& ray, cg::renderer::payload& payload,
                                               const cg::renderer::triangle<cg::vertex>& triangle) {
                 payload.color = cg::color::from_float3(float3{ 1.f, 1.f, 1.f });
                 return payload;
@@ -51,8 +50,7 @@ SCENARIO("Raytracer has correct ray-triangle test")
 
 
             raytracer.ray_generation(
-                float3{ 0.f, 0.f, 1.f }, float3{ 0.f, 0.f, -1.f },
-                float3{ 1.f, 0.f, 0.f }, float3{ 0.f, 1.f, 0.f });
+                float3{ 0.f, 0.f, 1.f }, float3{ 0.f, 0.f, -1.f }, float3{ 1.f, 0.f, 0.f }, float3{ 0.f, 1.f, 0.f });
 
             THEN("Make sure that image is correct")
             {

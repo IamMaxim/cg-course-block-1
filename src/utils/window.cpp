@@ -112,13 +112,11 @@ int cg::utils::window::run(cg::renderer::renderer* renderer, HINSTANCE hinstance
     RegisterClassEx(&window_class);
 
     // Create the window and store a handle to it.
-    RECT window_rect = { 0, 0, static_cast<LONG>(renderer->get_width()),
-                         static_cast<LONG>(renderer->get_height()) };
+    RECT window_rect = { 0, 0, static_cast<LONG>(renderer->get_width()), static_cast<LONG>(renderer->get_height()) };
     AdjustWindowRect(&window_rect, WS_OVERLAPPEDWINDOW, FALSE);
     hwnd = CreateWindow(
-        window_class.lpszClassName, L"DX12 renderer", WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, window_rect.right - window_rect.left,
-        window_rect.bottom - window_rect.top, nullptr, nullptr, hinstance, renderer);
+        window_class.lpszClassName, L"DX12 renderer", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+        window_rect.right - window_rect.left, window_rect.bottom - window_rect.top, nullptr, nullptr, hinstance, renderer);
 
     // Initialize the sample. OnInit is defined in each child-implementation of DXSample.
     renderer->init();
@@ -141,17 +139,14 @@ int cg::utils::window::run(cg::renderer::renderer* renderer, HINSTANCE hinstance
 
 LRESULT cg::utils::window::window_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
-    cg::renderer::renderer* renderer = reinterpret_cast<cg::renderer::renderer*>(
-        GetWindowLongPtr(hwnd, GWLP_USERDATA));
+    cg::renderer::renderer* renderer = reinterpret_cast<cg::renderer::renderer*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
     switch (message)
     {
     case WM_CREATE: {
         // Save the Renderer* passed in to CreateWindow.
         LPCREATESTRUCT pCreateStruct = reinterpret_cast<LPCREATESTRUCT>(lparam);
-        SetWindowLongPtr(
-            hwnd, GWLP_USERDATA,
-            reinterpret_cast<LONG_PTR>(pCreateStruct->lpCreateParams));
+        SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pCreateStruct->lpCreateParams));
     }
         return 0;
 

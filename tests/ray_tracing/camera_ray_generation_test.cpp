@@ -21,15 +21,12 @@ SCENARIO("Raytracer generates rays")
             raytracer.miss_shader = [](const cg::renderer::ray& ray) {
                 cg::renderer::payload payload = {};
                 payload.t = -1.f;
-                payload.color = { ray.direction.x / 0.5f + 0.5f,
-                                  ray.direction.y / 0.5f + 0.5f,
-                                  ray.direction.z / 0.5f + 0.5f };
+                payload.color = { ray.direction.x / 0.5f + 0.5f, ray.direction.y / 0.5f + 0.5f, ray.direction.z / 0.5f + 0.5f };
                 return payload;
             };
 
             raytracer.ray_generation(
-                float3{ 0.f, 0.f, 0.f }, float3{ 0.f, 0.f, 1.f },
-                float3{ 1.f, 0.f, 0.f }, float3{ 0.f, 1.f, 0.f });
+                float3{ 0.f, 0.f, 0.f }, float3{ 0.f, 0.f, 1.f }, float3{ 1.f, 0.f, 0.f }, float3{ 0.f, 1.f, 0.f });
 
             THEN("Make sure that image is correct")
             {

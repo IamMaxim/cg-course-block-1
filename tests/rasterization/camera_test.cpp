@@ -88,10 +88,9 @@ SCENARIO("Camera produces correct view matrix")
 
             THEN("get_view_matrix returns correct matrix")
             {
-                float4x4 view_matrix{ { 1.f, 0.f, 0.f, -0.f },
-                                      { 0.f, 1.f, 0.f, -0.f },
-                                      { 0.f, 0.f, 1.f, -0.f },
-                                      { 0.f, 0.f, 0.f, 1.f } };
+                float4x4 view_matrix{
+                    { 1.f, 0.f, 0.f, -0.f }, { 0.f, 1.f, 0.f, -0.f }, { 0.f, 0.f, 1.f, -0.f }, { 0.f, 0.f, 0.f, 1.f }
+                };
                 REQUIRE(abs(camera.get_view_matrix() - view_matrix) <= float4x4(FLT_EPSILON));
             };
         }
@@ -104,10 +103,9 @@ SCENARIO("Camera produces correct view matrix")
 
             THEN("get_view_matrix returns correct matrix")
             {
-                float4x4 view_matrix{ { -0.f, 0.f, 1.f, -0.f },
-                                      { 0.f, 1.f, 0.f, -0.f },
-                                      { -1.f, 0.f, -0.f, -0.f },
-                                      { 0.f, 0.f, 0.f, 1.f } };
+                float4x4 view_matrix{
+                    { -0.f, 0.f, 1.f, -0.f }, { 0.f, 1.f, 0.f, -0.f }, { -1.f, 0.f, -0.f, -0.f }, { 0.f, 0.f, 0.f, 1.f }
+                };
                 REQUIRE(abs(camera.get_view_matrix() - view_matrix) <= float4x4(FLT_EPSILON));
             };
         }

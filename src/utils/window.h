@@ -18,6 +18,4 @@ protected:
 private:
     static HWND hwnd;
 };
-}
-
-
+} // namespace cg::utils

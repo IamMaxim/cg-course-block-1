@@ -74,11 +74,8 @@ SCENARIO("Raytracer with shadow rays")
                 payload.t = -1.f;
                 return payload;
             };
-            shadow_raytracer.any_hit_shader =
-                [](const cg::renderer::ray& ray, cg::renderer::payload& payload,
-                   const cg::renderer::triangle<cg::vertex>& triangle) {
-                    return payload;
-                };
+            shadow_raytracer.any_hit_shader = [](const cg::renderer::ray& ray, cg::renderer::payload& payload,
+                                                 const cg::renderer::triangle<cg::vertex>& triangle) { return payload; };
 
 
             raytracer.miss_shader = [](const cg::renderer::ray& ray) {
@@ -88,38 +85,31 @@ SCENARIO("Raytracer with shadow rays")
                 return payload;
             };
 
-            raytracer.closest_hit_shader =
-                [&](const cg::renderer::ray& ray, cg::renderer::payload& payload,
-                    const cg::renderer::triangle<cg::vertex>& triangle) {
-                    float3 result_color = float3{ 0.f, 0.f, 0.f };
+            raytracer.closest_hit_shader = [&](const cg::renderer::ray& ray, cg::renderer::payload& payload,
+                                               const cg::renderer::triangle<cg::vertex>& triangle) {
+                float3 result_color = float3{ 0.f, 0.f, 0.f };
 
-                    float3 point = ray.position + ray.direction * payload.t;
-                    float3 normal = payload.bary.x * triangle.na +
-                                    payload.bary.y * triangle.nb +
-                                    payload.bary.z * triangle.nc;
+                float3 point = ray.position + ray.direction * payload.t;
+                float3 normal = payload.bary.x * triangle.na + payload.bary.y * triangle.nb + payload.bary.z * triangle.nc;
 
-                    for (auto& light : lights)
+                for (auto& light : lights)
+                {
+                    cg::renderer::ray to_light(point, light.position - point);
+
+                    auto shadow_payload = shadow_raytracer.trace_ray(to_light, 1, length(light.position - point));
+
+                    if (shadow_payload.t == -1.f)
                     {
-                        cg::renderer::ray to_light(point, light.position - point);
 
-                        auto shadow_payload = shadow_raytracer.trace_ray(
-                            to_light, 1, length(light.position - point));
-
-                        if (shadow_payload.t == -1.f)
-                        {
-
-                            result_color +=
-                                light.color *
-                                std::max(dot(normal, to_light.direction), 0.f);
-                        }
+                        result_color += light.color * std::max(dot(normal, to_light.direction), 0.f);
                     }
-                    payload.color = cg::color::from_float3(result_color);
-                    return payload;
-                };
+                }
+                payload.color = cg::color::from_float3(result_color);
+                return payload;
+            };
 
             raytracer.ray_generation(
-                float3{ 0.f, 0.f, 1.f }, float3{ 0.f, 0.f, -1.f },
-                float3{ 1.f, 0.f, 0.f }, float3{ 0.f, 1.f, 0.f });
+                float3{ 0.f, 0.f, 1.f }, float3{ 0.f, 0.f, -1.f }, float3{ 1.f, 0.f, 0.f }, float3{ 0.f, 1.f, 0.f });
 
             THEN("Make sure that image is correct")
             {

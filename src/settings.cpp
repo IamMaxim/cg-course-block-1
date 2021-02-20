@@ -16,30 +16,15 @@ std::shared_ptr<settings> cg::settings::parse_settings(int argc, char** argv)
     auto add_options = options.add_options();
     add_options("height", "Render target height", cxxopts::value<unsigned>()->default_value("1080"));
     add_options("width", "Render target width", cxxopts::value<unsigned>()->default_value("1920"));
-    add_options(
-        "model_path", "Path to OBJ model",
-        cxxopts::value<std::filesystem::path>()->default_value(
-            "models/z_test.obj"));
-    add_options(
-        "camera_position", "Camera position",
-        cxxopts::value<std::vector<float>>()->default_value("0.0,1.0,5.0"));
+    add_options("model_path", "Path to OBJ model", cxxopts::value<std::filesystem::path>()->default_value("models/z_test.obj"));
+    add_options("camera_position", "Camera position", cxxopts::value<std::vector<float>>()->default_value("0.0,1.0,5.0"));
     add_options("camera_theta", "Camera polar angle", cxxopts::value<float>()->default_value("0.0"));
     add_options("camera_phi", "Camera azimut angle", cxxopts::value<float>()->default_value("0.0"));
-    add_options(
-        "camera_angle_of_view", "Camera angle of view",
-        cxxopts::value<float>()->default_value("60.0"));
-    add_options(
-        "camera_z_near", "Minimum expected depth",
-        cxxopts::value<float>()->default_value("0.001"));
-    add_options(
-        "camera_z_far", "Maximum expected depth",
-        cxxopts::value<float>()->default_value("100.0"));
-    add_options(
-        "result_path", "Path to resulted image",
-        cxxopts::value<std::filesystem::path>()->default_value("result.png"));
-    add_options(
-        "accumulation_num", "Number of accumulated frames",
-        cxxopts::value<unsigned>()->default_value("4"));
+    add_options("camera_angle_of_view", "Camera angle of view", cxxopts::value<float>()->default_value("60.0"));
+    add_options("camera_z_near", "Minimum expected depth", cxxopts::value<float>()->default_value("0.001"));
+    add_options("camera_z_far", "Maximum expected depth", cxxopts::value<float>()->default_value("100.0"));
+    add_options("result_path", "Path to resulted image", cxxopts::value<std::filesystem::path>()->default_value("result.png"));
+    add_options("accumulation_num", "Number of accumulated frames", cxxopts::value<unsigned>()->default_value("4"));
     add_options("h,help", "Print usage");
 
     auto result = options.parse(argc, argv);

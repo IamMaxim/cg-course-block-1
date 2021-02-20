@@ -21,8 +21,7 @@ SCENARIO("Rasterizer produces correct depth buffer")
         vertex_buffer->item(4) = { -1.f, 1.f, 1.f };
         vertex_buffer->item(5) = { -1.f, 0.7f, 1.f };
 
-        auto render_target =
-            std::make_shared<cg::resource<cg::unsigned_color>>(10, 10);
+        auto render_target = std::make_shared<cg::resource<cg::unsigned_color>>(10, 10);
         auto depth_buffer = std::make_shared<cg::resource<float>>(10, 10);
 
         cg::renderer::rasterizer<cg::vertex, cg::unsigned_color> rasterizer;
@@ -34,9 +33,7 @@ SCENARIO("Rasterizer produces correct depth buffer")
             return std::make_pair(vertex, vertex_data);
         };
 
-        rasterizer.pixel_shader = [](cg::vertex vertex_data, float depth) {
-            return cg::color{ depth, depth, depth };
-        };
+        rasterizer.pixel_shader = [](cg::vertex vertex_data, float depth) { return cg::color{ depth, depth, depth }; };
 
         WHEN("Clear and draw")
         {

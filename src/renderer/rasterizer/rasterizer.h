@@ -6,7 +6,6 @@
 #include <iostream>
 #include <linalg.h>
 #include <memory>
-
 #include <stdio.h>
 
 
@@ -24,9 +23,7 @@ class rasterizer
 public:
     rasterizer(){};
     ~rasterizer(){};
-    void set_render_target(
-        std::shared_ptr<resource<RT>> in_render_target,
-        std::shared_ptr<resource<float>> in_depth_buffer = nullptr);
+    void set_render_target(std::shared_ptr<resource<RT>> in_render_target, std::shared_ptr<resource<float>> in_depth_buffer = nullptr);
     void clear_render_target(const RT& in_clear_value, const float in_depth = FLT_MAX);
 
     void set_vertex_buffer(std::shared_ptr<resource<VB>> in_vertex_buffer);
@@ -52,8 +49,7 @@ protected:
 
 template<typename VB, typename RT>
 inline void rasterizer<VB, RT>::set_render_target(
-    std::shared_ptr<resource<RT>> in_render_target,
-    std::shared_ptr<resource<float>> in_depth_buffer)
+    std::shared_ptr<resource<RT>> in_render_target, std::shared_ptr<resource<float>> in_depth_buffer)
 {
     if (in_render_target)
         render_target = in_render_target;
@@ -66,14 +62,18 @@ inline void rasterizer<VB, RT>::set_render_target(
 template<typename VB, typename RT>
 inline void rasterizer<VB, RT>::clear_render_target(const RT& in_clear_value, const float in_depth)
 {
-    if (render_target) {
-        for (size_t i = 0; i < render_target->get_number_of_elements(); i++) {
+    if (render_target)
+    {
+        for (size_t i = 0; i < render_target->get_number_of_elements(); i++)
+        {
             render_target->item(i) = in_clear_value;
         }
     }
 
-    if (depth_buffer) {
-        for (size_t i = 0; i < depth_buffer->get_number_of_elements(); i++) {
+    if (depth_buffer)
+    {
+        for (size_t i = 0; i < depth_buffer->get_number_of_elements(); i++)
+        {
             depth_buffer->item(i) = in_depth;
         }
     }
@@ -96,7 +96,8 @@ template<typename VB, typename RT>
 inline void rasterizer<VB, RT>::draw(size_t num_vertices, size_t vertex_offset)
 {
     size_t vertex_id = vertex_offset;
-    while (vertex_id < vertex_offset + num_vertices) {
+    while (vertex_id < vertex_offset + num_vertices)
+    {
         // Input assembler
 
         // Read one triangle
@@ -105,8 +106,9 @@ inline void rasterizer<VB, RT>::draw(size_t num_vertices, size_t vertex_offset)
         vertices[1] = vertex_buffer->item(vertex_id++);
         vertices[2] = vertex_buffer->item(vertex_id++);
 
-        for (auto& vertex : vertices) {
-            float4 coords {vertex.x, vertex.y, vertex.z, 1.f};
+        for (auto& vertex : vertices)
+        {
+            float4 coords{ vertex.x, vertex.y, vertex.z, 1.f };
 
             // Invoke a vertex shader
             auto processed_vertex = vertex_shader(coords, vertex);
@@ -121,67 +123,59 @@ inline void rasterizer<VB, RT>::draw(size_t num_vertices, size_t vertex_offset)
         }
 
         // Compute bounding box to optimize pixel shader invocation to only this region
-        float2 bounding_box_begin {
+        float2 bounding_box_begin{
             std::clamp(std::min(std::min(vertices[0].x, vertices[1].x), vertices[2].x), 0.f, static_cast<float>(width) - 1.f),
             std::clamp(std::min(std::min(vertices[0].y, vertices[1].y), vertices[2].y), 0.f, static_cast<float>(height) - 1.f),
         };
-        float2 bounding_box_end {
+        float2 bounding_box_end{
             std::clamp(std::max(std::max(vertices[0].x, vertices[1].x), vertices[2].x), 0.f, static_cast<float>(width) - 1.f),
             std::clamp(std::max(std::max(vertices[0].y, vertices[1].y), vertices[2].y), 0.f, static_cast<float>(height) - 1.f),
         };
 
         float edge = edge_function(
-            float2 {vertices[0].x, vertices[0].y},
-            float2 {vertices[1].x, vertices[1].y},
-            float2 {vertices[2].x, vertices[2].y}
-        );
+            float2{ vertices[0].x, vertices[0].y }, float2{ vertices[1].x, vertices[1].y },
+            float2{ vertices[2].x, vertices[2].y });
 
         // Check each pixel in the bounding box and invoke pixel shader if needed
         for (int x = static_cast<int>(bounding_box_begin.x); x <= static_cast<int>(bounding_box_end.x); x++)
-        for (int y = static_cast<int>(bounding_box_begin.y); y <= static_cast<int>(bounding_box_end.y); y++) {
-            // bary-coordinate for vertices[2]
-            float edge0 = edge_function(
-                float2 {vertices[0].x, vertices[0].y},
-                float2 {vertices[1].x, vertices[1].y},
-                float2 {static_cast<float>(x), static_cast<float>(y)}
-            );
-            // bary-coordinate for vertices[0]
-            float edge1 = edge_function(
-                float2 {vertices[1].x, vertices[1].y},
-                float2 {vertices[2].x, vertices[2].y},
-                float2 {static_cast<float>(x), static_cast<float>(y)}
-            );
-            // bary-coordinate for vertices[1]
-            float edge2 = edge_function(
-                float2 {vertices[2].x, vertices[2].y},
-                float2 {vertices[0].x, vertices[0].y},
-                float2 {static_cast<float>(x), static_cast<float>(y)}
-            );
+            for (int y = static_cast<int>(bounding_box_begin.y); y <= static_cast<int>(bounding_box_end.y); y++)
+            {
+                // bary-coordinate for vertices[2]
+                float edge0 = edge_function(
+                    float2{ vertices[0].x, vertices[0].y }, float2{ vertices[1].x, vertices[1].y },
+                    float2{ static_cast<float>(x), static_cast<float>(y) });
+                // bary-coordinate for vertices[0]
+                float edge1 = edge_function(
+                    float2{ vertices[1].x, vertices[1].y }, float2{ vertices[2].x, vertices[2].y },
+                    float2{ static_cast<float>(x), static_cast<float>(y) });
+                // bary-coordinate for vertices[1]
+                float edge2 = edge_function(
+                    float2{ vertices[2].x, vertices[2].y }, float2{ vertices[0].x, vertices[0].y },
+                    float2{ static_cast<float>(x), static_cast<float>(y) });
 
-            if (edge0 >= 0.f && edge1 >= 0.f && edge2 >= 0.f) {
-                // We are processing the pixel of a triangle; invoke pixel shader
-                // and write the result to render target
-                float u = edge1 / edge;
-                float v = edge2 / edge;
-                float w = edge0 / edge;
+                if (edge0 >= 0.f && edge1 >= 0.f && edge2 >= 0.f)
+                {
+                    // We are processing the pixel of a triangle; invoke pixel shader
+                    // and write the result to render target
+                    float u = edge1 / edge;
+                    float v = edge2 / edge;
+                    float w = edge0 / edge;
 
-                float z = u * vertices[0].z +
-                          v * vertices[1].z +
-                          w * vertices[2].z;
+                    float z = u * vertices[0].z + v * vertices[1].z + w * vertices[2].z;
 
-                // Skip processing pixel if depth test is not passed
-                if (!depth_test(z, x, y))
-                    continue;
+                    // Skip processing pixel if depth test is not passed
+                    if (!depth_test(z, x, y))
+                        continue;
 
-                // TODO: fix this
-                auto pixel_shader_result = pixel_shader(vertices[0], 0);
+                    // TODO: fix this
+                    auto pixel_shader_result = pixel_shader(vertices[0], 0);
 
-                render_target->item(x, y) = RT::from_color(pixel_shader_result);
+                    render_target->item(x, y) = RT::from_color(pixel_shader_result);
 
-                if (depth_buffer)
-                    depth_buffer->item(x, y) = z;
+                    if (depth_buffer)
+                        depth_buffer->item(x, y) = z;
+                }
             }
-        }
     }
 }
 

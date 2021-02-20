@@ -16,8 +16,7 @@ SCENARIO("Rasterizer produces correct image")
         vertex_buffer->item(1) = { -1.f, 1.f, 0.f };
         vertex_buffer->item(2) = { -1.f, 0.7f, 0.f };
 
-        auto render_target =
-            std::make_shared<cg::resource<cg::unsigned_color>>(10, 10);
+        auto render_target = std::make_shared<cg::resource<cg::unsigned_color>>(10, 10);
 
         cg::renderer::rasterizer<cg::vertex, cg::unsigned_color> rasterizer;
         rasterizer.set_vertex_buffer(vertex_buffer);
@@ -28,9 +27,7 @@ SCENARIO("Rasterizer produces correct image")
             return std::make_pair(vertex, vertex_data);
         };
 
-        rasterizer.pixel_shader = [](cg::vertex vertex_data, float depth) {
-            return cg::color{ 1.f, 1.f, 1.f };
-        };
+        rasterizer.pixel_shader = [](cg::vertex vertex_data, float depth) { return cg::color{ 1.f, 1.f, 1.f }; };
 
         WHEN("Clear and draw")
         {
